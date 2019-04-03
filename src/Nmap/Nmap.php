@@ -38,6 +38,8 @@ class Nmap
 
     private $timeout = 60;
 
+    private $extraOptions = array();
+
     /**
      * @return Nmap
      */
@@ -64,6 +66,16 @@ class Nmap
         if ($this->executor->execute(array($this->executable, ' -h')) !== 0) {
             throw new \InvalidArgumentException(sprintf('`%s` is not executable.', $this->executable));
         }
+    }
+
+    /**
+     * Extra options to pass into nmap.
+     * @param array $args
+     * @return Nmap
+     */
+    public function setExtraOptions(array $args) {
+        $this->extraOptions = $args;
+        return $this;
     }
 
     /**
