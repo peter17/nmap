@@ -86,7 +86,8 @@ class Nmap
      */
     public function scan(array $targets, array $ports = array())
     {
-        $options = array();
+        $options = $this->extraOptions;
+
         if (true === $this->enableOsDetection) {
             $options[] = '-O';
         }
