@@ -17,7 +17,6 @@ use Symfony\Component\Process\Process;
  */
 class ProcessExecutor
 {
-
     public function execute(array $command, int $timeout = 60) : int
     {
         $process = new Process($command, null, null, null, $timeout);
@@ -34,6 +33,5 @@ class ProcessExecutor
         $retval = $process->getExitCode();
 
         return (int)$retval;
-
     }
 }

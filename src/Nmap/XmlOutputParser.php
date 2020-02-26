@@ -2,7 +2,6 @@
 
 namespace Nmap;
 
-
 class XmlOutputParser
 {
 
@@ -61,7 +60,6 @@ class XmlOutputParser
          */
         $ports = array();
         foreach ($xmlPorts as $port) {
-
             $name = $product = $version = null;
 
             if ($port->service) {
@@ -74,7 +72,10 @@ class XmlOutputParser
             }
 
             $service = new Service(
-                $name, $product, $version);
+                $name,
+                $product,
+                $version
+            );
 
             $attrs = $port->attributes();
             if (!is_null($attrs)) {
@@ -82,8 +83,8 @@ class XmlOutputParser
                     (int)$attrs->portid,
                     (string)$attrs->protocol,
                     (string)$port->state->attributes()->state,
-                    $service);
-
+                    $service
+                );
             }
         }
 

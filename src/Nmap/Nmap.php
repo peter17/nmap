@@ -56,13 +56,17 @@ class Nmap
      *
      * @throws \InvalidArgumentException
      */
-    public function __construct(ProcessExecutor $executor = null, string $outputFile = null, string $executable = 'nmap')
-    {
+    public function __construct(
+        ProcessExecutor $executor = null,
+        string $outputFile = null,
+        string $executable = 'nmap'
+    ) {
         $this->executor = $executor ?: new ProcessExecutor();
         $this->outputFile = $outputFile ?: tempnam(sys_get_temp_dir(), 'nmap-scan-output.xml');
         $this->executable = $executable;
 
-        // If executor returns anything else than 0 (success exit code), throw an exeption since $executable is not executable.
+        // If executor returns anything else than 0 (success exit code),
+        // throw an exeption since $executable is not executable.
         if ($this->executor->execute(array($this->executable, ' -h')) !== 0) {
             throw new \InvalidArgumentException(sprintf('`%s` is not executable.', $this->executable));
         }
@@ -134,7 +138,6 @@ class Nmap
      */
     public function scan(array $targets, array $ports = array()): array
     {
-
         $command = $this->buildCommand($targets, $ports);
 
         $this->executor->execute($command, $this->timeout);
