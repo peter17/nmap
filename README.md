@@ -12,7 +12,7 @@ Usage
 ```php
 $hosts = Nmap::create()->scan([ 'example.com' ]);
 
-$ports = $hosts->getOpenPorts();
+$ports = $hosts[0]->getOpenPorts();
 ```
 
 You can specify the ports you want to scan:
