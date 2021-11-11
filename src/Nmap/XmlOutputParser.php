@@ -24,7 +24,7 @@ class XmlOutputParser
             if (isset($xmlHost->hostscript)) {
                 $host->setScripts(self::parseScripts($xmlHost->hostscript->script));
             }
-            if (isset($xmlHost->os)) {
+            if (isset($xmlHost->os->osmatch)) {
                 $host->setOs((string) $xmlHost->os->osmatch->attributes()->name);
             }
             $hosts[] = $host;
