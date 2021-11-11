@@ -14,13 +14,20 @@ class XmlOutputParser
         $xml = simplexml_load_file($xmlFile);
 
         $hosts = array();
-        foreach ($xml->host as $host) {
-            $hosts[] = new Host(
-                self::parseAddresses($host),
-                (string)$host->status->attributes()->state,
-                isset($host->hostnames) ? self::parseHostnames($host->hostnames->hostname) : array(),
-                isset($host->ports) ? self::parsePorts($host->ports->port) : array()
+        foreach ($xml->host as $xmlHost) {
+            $host = new Host(
+                self::parseAddresses($xmlHost),
+                (string)$xmlHost->status->attributes()->state,
+                isset($xmlHost->hostnames) ? self::parseHostnames($xmlHost->hostnames->hostname) : array(),
+                isset($xmlHost->ports) ? self::parsePorts($xmlHost->ports->port) : array(),
             );
+            if (isset($xmlHost->hostscript)) {
+                $host->setScripts(self::parseScripts($xmlHost->hostscript->script));
+            }
+            if (isset($xmlHost->os)) {
+                $host->setOs((string) $xmlHost->os->osmatch->attributes()->name);
+            }
+            $hosts[] = $host;
         }
 
         return $hosts;
@@ -50,6 +57,21 @@ class XmlOutputParser
     }
 
     /**
+     * @param \SimpleXMLElement $xmlHostscript
+     * @return Script[]
+     */
+    public static function parseScripts(\SimpleXMLElement $xmlScripts)
+    {
+        $scripts = array();
+        foreach ($xmlScripts as $script) {
+            $attrs = $script->attributes();
+            $scripts[] = new Script($attrs->id, $attrs->output);
+        }
+
+        return $scripts;
+    }
+
+    /**
      * @param \SimpleXMLElement $xmlPorts
      * @return Port[]
      */
@@ -59,11 +81,11 @@ class XmlOutputParser
          *
          */
         $ports = array();
-        foreach ($xmlPorts as $port) {
+        foreach ($xmlPorts as $xmlPort) {
             $name = $product = $version = null;
 
-            if ($port->service) {
-                $attrs = $port->service->attributes();
+            if ($xmlPort->service) {
+                $attrs = $xmlPort->service->attributes();
                 if (!is_null($attrs)) {
                     $name = (string)$attrs->name;
                     $product = (string)$attrs->product;
@@ -77,14 +99,18 @@ class XmlOutputParser
                 $version
             );
 
-            $attrs = $port->attributes();
+            $attrs = $xmlPort->attributes();
             if (!is_null($attrs)) {
-                $ports[] = new Port(
+                $port = new Port(
                     (int)$attrs->portid,
                     (string)$attrs->protocol,
-                    (string)$port->state->attributes()->state,
+                    (string)$xmlPort->state->attributes()->state,
                     $service
                 );
+                if (isset($xmlPort->script)) {
+                    $port->setScripts(self::parseScripts($xmlPort->script));
+                }
+                $ports[] = $port;
             }
         }
 

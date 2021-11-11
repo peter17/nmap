@@ -27,12 +27,19 @@ class Port
 
     private $service;
 
+    private $scripts = [];
+
     public function __construct(int $number, string $protocol, string $state, Service $service)
     {
         $this->number   = (int) $number;
         $this->protocol = $protocol;
         $this->state    = $state;
         $this->service  = $service;
+    }
+
+    public function setScripts(array $scripts)
+    {
+        $this->scripts = $scripts;
     }
 
     /**
@@ -76,5 +83,13 @@ class Port
     public function getService() : Service
     {
         return $this->service;
+    }
+
+    /**
+     * @return Script[]
+     */
+    public function getScripts() : array
+    {
+        return $this->scripts;
     }
 }

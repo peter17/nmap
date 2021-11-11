@@ -27,12 +27,26 @@ class Host
 
     private $ports;
 
+    private $scripts = [];
+
+    private $os;
+
     public function __construct(array $addresses, string $state, array $hostnames = array(), array $ports = array())
     {
         $this->addresses = $addresses;
         $this->state     = $state;
         $this->hostnames = $hostnames;
         $this->ports     = $ports;
+    }
+
+    public function setScripts(array $scripts)
+    {
+        $this->scripts = $scripts;
+    }
+
+    public function setOs(string $os)
+    {
+        $this->os = $os;
     }
 
     /**
@@ -90,11 +104,27 @@ class Host
     }
 
     /**
+     * @return string
+     */
+    public function getOs() : ?string
+    {
+        return $this->os;
+    }
+
+    /**
      * @return Hostname[]
      */
     public function getHostnames() : array
     {
         return $this->hostnames;
+    }
+
+    /**
+     * @return Script[]
+     */
+    public function getScripts() : array
+    {
+        return $this->scripts;
     }
 
     /**
