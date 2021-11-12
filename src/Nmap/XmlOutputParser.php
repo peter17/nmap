@@ -63,12 +63,42 @@ class XmlOutputParser
     public static function parseScripts(\SimpleXMLElement $xmlScripts)
     {
         $scripts = array();
-        foreach ($xmlScripts as $script) {
-            $attrs = $script->attributes();
-            $scripts[] = new Script($attrs->id, $attrs->output);
+        foreach ($xmlScripts as $xmlScript) {
+            $attrs = $xmlScript->attributes();
+            $scripts[] = new Script(
+                $attrs->id,
+                $attrs->output,
+                isset($xmlScript->elem) || isset($xmlScript->table) ? self::parseScriptElems($xmlScript) : array()
+            );
         }
 
         return $scripts;
+    }
+
+    public static function parseScriptElem(\SimpleXMLElement $xmlElems): array
+    {
+        $elems = array();
+        foreach ($xmlElems as $xmlElem) {
+            if (empty($xmlElem->attributes())) {
+                $elems[] = (string) $xmlElem[0];
+            } else {
+                $elems[(string) $xmlElem->attributes()->key] = (string) $xmlElem[0];
+            }
+        }
+        return $elems;
+    }
+
+    public static function parseScriptElems(\SimpleXMLElement $xmlScript): array
+    {
+        if (isset($xmlScript->table)) {
+            $elems = array();
+            foreach ($xmlScript->table as $xmlTable) {
+                $elems[(string) $xmlTable->attributes()->key] = self::parseScriptElem($xmlTable->elem);
+            }
+            return $elems;
+        }
+
+        return self::parseScriptElem($xmlScript->elem);
     }
 
     /**

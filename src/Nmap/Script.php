@@ -8,10 +8,13 @@ class Script
 
     private string $output;
 
-    public function __construct($id, $output)
+    private array $elems;
+
+    public function __construct(string $id, string $output, array $elems)
     {
         $this->id = $id;
         $this->output = $output;
+        $this->elems = $elems;
     }
 
     public function getId()
@@ -22,5 +25,10 @@ class Script
     public function getOutput()
     {
         return $this->output;
+    }
+
+    public function getElems()
+    {
+        return $this->elems;
     }
 }
