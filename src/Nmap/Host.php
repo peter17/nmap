@@ -31,6 +31,8 @@ class Host
 
     private $os;
 
+    private $os_accuracy;
+
     public function __construct(array $addresses, string $state, array $hostnames = array(), array $ports = array())
     {
         $this->addresses = $addresses;
@@ -47,6 +49,11 @@ class Host
     public function setOs(string $os)
     {
         $this->os = $os;
+    }
+
+    public function setOsAccuracy(string $accuracy)
+    {
+        $this->os_accuracy = $accuracy;
     }
 
     /**
@@ -109,6 +116,14 @@ class Host
     public function getOs() : ?string
     {
         return $this->os;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOsAccuracy() : ?int
+    {
+        return $this->os_accuracy;
     }
 
     /**

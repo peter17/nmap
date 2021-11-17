@@ -26,6 +26,7 @@ class XmlOutputParser
             }
             if (isset($xmlHost->os->osmatch)) {
                 $host->setOs((string) $xmlHost->os->osmatch->attributes()->name);
+                $host->setOsAccuracy((int) $xmlHost->os->osmatch->attributes()->accuracy);
             }
             $hosts[] = $host;
         }
