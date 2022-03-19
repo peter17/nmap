@@ -19,19 +19,34 @@ class Port
 
     const STATE_CLOSED = 'closed';
 
+    /**
+     * @var int
+     */
     private $number;
 
+    /**
+     * @var string
+     */
     private $protocol;
 
+    /**
+     * @var string
+     */
     private $state;
 
+    /**
+     * @var Service
+     */
     private $service;
 
+    /**
+     * @var array
+     */
     private $scripts = [];
 
     public function __construct(int $number, string $protocol, string $state, Service $service)
     {
-        $this->number   = (int) $number;
+        $this->number   = $number;
         $this->protocol = $protocol;
         $this->state    = $state;
         $this->service  = $service;
