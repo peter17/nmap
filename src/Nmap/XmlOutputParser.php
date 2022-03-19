@@ -66,6 +66,9 @@ class XmlOutputParser
         $scripts = array();
         foreach ($xmlScripts as $xmlScript) {
             $attrs = $xmlScript->attributes();
+            if(null === $attrs) {
+                continue;
+            }
             $scripts[] = new Script(
                 $attrs->id,
                 $attrs->output,
@@ -83,7 +86,11 @@ class XmlOutputParser
             if (empty($xmlElem->attributes())) {
                 $elems[] = (string) $xmlElem[0];
             } else {
-                $elems[(string) $xmlElem->attributes()->key] = (string) $xmlElem[0];
+                $attrs = $xmlElem->attributes();
+                if(null === $attrs) {
+                    continue;
+                }
+                $elems[(string) $attrs->key] = (string) $xmlElem[0];
             }
         }
         return $elems;
