@@ -19,7 +19,7 @@ class XmlOutputParser
                 self::parseAddresses($xmlHost),
                 (string)$xmlHost->status->attributes()->state,
                 isset($xmlHost->hostnames) ? self::parseHostnames($xmlHost->hostnames->hostname) : array(),
-                isset($xmlHost->ports) ? self::parsePorts($xmlHost->ports->port) : array(),
+                isset($xmlHost->ports) ? self::parsePorts($xmlHost->ports->port) : array()
             );
             if (isset($xmlHost->hostscript)) {
                 $host->setScripts(self::parseScripts($xmlHost->hostscript->script));
