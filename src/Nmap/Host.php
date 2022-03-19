@@ -27,12 +27,33 @@ class Host
 
     private $ports;
 
+    private $scripts = [];
+
+    private $os;
+
+    private $os_accuracy;
+
     public function __construct(array $addresses, string $state, array $hostnames = array(), array $ports = array())
     {
         $this->addresses = $addresses;
         $this->state     = $state;
         $this->hostnames = $hostnames;
         $this->ports     = $ports;
+    }
+
+    public function setScripts(array $scripts)
+    {
+        $this->scripts = $scripts;
+    }
+
+    public function setOs(string $os)
+    {
+        $this->os = $os;
+    }
+
+    public function setOsAccuracy(string $accuracy)
+    {
+        $this->os_accuracy = $accuracy;
     }
 
     /**
@@ -90,11 +111,35 @@ class Host
     }
 
     /**
+     * @return string
+     */
+    public function getOs() : ?string
+    {
+        return $this->os;
+    }
+
+    /**
+     * @return int
+     */
+    public function getOsAccuracy() : ?int
+    {
+        return $this->os_accuracy;
+    }
+
+    /**
      * @return Hostname[]
      */
     public function getHostnames() : array
     {
         return $this->hostnames;
+    }
+
+    /**
+     * @return Script[]
+     */
+    public function getScripts() : array
+    {
+        return $this->scripts;
     }
 
     /**
