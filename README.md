@@ -82,7 +82,7 @@ Import existing Nmap XML output
 -------------------------------
 
 ``` php
-$nmap->parseOutputFile($xmlFile);
+Nmap::parseOutput($xmlFile);
 ```
 
 Installation

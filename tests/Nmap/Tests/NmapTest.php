@@ -264,8 +264,7 @@ class NmapTest extends TestCase
 
     public function testExistingXmlOutputFileCanBeParsed()
     {
-        $nmap = new Nmap();
-        $hosts = $nmap->parseOutputFile(__DIR__.'/Fixtures/test_scan.xml');
+        $hosts = Nmap::parseOutput(__DIR__.'/Fixtures/test_scan.xml');
         $host = current($hosts);
         $this->assertCount(1, $hosts);
         $this->assertCount(5, $host->getPorts());

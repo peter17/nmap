@@ -176,7 +176,7 @@ class Nmap
     /**
      * @return \Nmap\Host[]
      */
-    public function parseOutputFile(string $xmlFile)
+    public static function parseOutput(string $xmlFile)
     {
         if (!file_exists($xmlFile)) {
             throw new RuntimeException(sprintf('Output file not found ("%s")', $xmlFile));
