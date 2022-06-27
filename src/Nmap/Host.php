@@ -25,11 +25,11 @@ class Host
 
     private array $ports;
 
-    private $scripts = [];
+    private array $scripts = [];
 
-    private ?string $os;
+    private ?string $os = null;
 
-    private ?int $os_accuracy;
+    private ?int $os_accuracy = null;
 
     public function __construct(array $addresses, string $state, array $hostnames = [], array $ports = [])
     {
