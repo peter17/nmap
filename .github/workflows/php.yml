@@ -31,8 +31,11 @@ jobs:
     - name: Run lint
       run: composer lint
 
+    - name: Print PHP version
+      run: echo ${{ steps.setup-php.outputs.php-version }}
+
     - name: Run psalm
-      run: ./vendor/bin/psalm --php-version=`echo ${{ steps.setup-php.outputs.php-version }}` --output-format=github
+      run: ./vendor/bin/psalm --php-version=${{ matrix.php-versions }} $php-version --output-format=github
 
     - name: Run phpunit
       run: composer phpunit
