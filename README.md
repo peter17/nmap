@@ -1,12 +1,14 @@
-nmap
+**This project is maintained fork of the original project: https://github.com/willdurand/nmap**
+
+Nmap
 ====
 
-**nmap** is a PHP wrapper for [Nmap](http://nmap.org/), a free security scanner
+**Nmap** is a PHP wrapper for [Nmap](http://nmap.org/), a free security scanner
 for network exploration.
 
 ![PHP Build](https://github.com/DavidGoodwin/nmap/workflows/PHP%20Build/badge.svg)
 
-Usage
+Starting a scan
 -----
 
 ```php
@@ -75,15 +77,18 @@ $nmap
     ->scan([ 'example.com' ]);
 ```
 
+
+Import existing Nmap XML output
+-------------------------------
+
+``` php
+$nmap->parseOutputFile($xmlFile);
+```
+
 Installation
 ------------
 
-The recommended way to install nmap is through
-[Composer](http://getcomposer.org/):
-
-For PHP 7.2 and above, use version 2.x
-
-For PHP 5.6 and above, use version 1.x
+The recommended way to install nmap is through [Composer](http://getcomposer.org/):
 
 ``` json
 {
@@ -92,8 +97,6 @@ For PHP 5.6 and above, use version 1.x
     }
 }
 ```
-
-
 
 License
 -------

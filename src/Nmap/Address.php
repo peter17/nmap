@@ -10,36 +10,37 @@
 
 namespace Nmap;
 
-/**
- * @author Dany Maillard <danymaillard93b@gmail.com>
- */
 class Address
 {
+
     const TYPE_IPV4 = 'ipv4';
+
     const TYPE_MAC = 'mac';
 
-    private $address;
-    private $type;
-    private $vendor;
+    private string $address;
 
-    public function __construct(string $address, string $type = self::TYPE_IPV4, $vendor = '')
+    private string $type;
+
+    private string $vendor;
+
+    public function __construct(string $address, string $type = self::TYPE_IPV4, string $vendor = '')
     {
         $this->address = $address;
         $this->type = $type;
         $this->vendor = $vendor;
     }
 
-    public function getAddress() : string
+    public function getAddress(): string
     {
         return $this->address;
     }
 
-    public function getType() : string
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function getVendor() : string
+    public function getVendor(): string
     {
         return $this->vendor;
     }

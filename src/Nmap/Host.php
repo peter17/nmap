@@ -10,35 +10,33 @@
 
 namespace Nmap;
 
-/**
- * @author William Durand <william.durand1@gmail.com>
- */
 class Host
 {
-    const STATE_UP   = 'up';
+
+    const STATE_UP = 'up';
 
     const STATE_DOWN = 'down';
 
-    private $addresses;
+    private array $addresses;
 
-    private $state;
+    private string $state;
 
-    private $hostnames;
+    private array $hostnames;
 
-    private $ports;
+    private array $ports;
 
     private $scripts = [];
 
-    private $os;
+    private ?string $os;
 
-    private $os_accuracy;
+    private ?int $os_accuracy;
 
-    public function __construct(array $addresses, string $state, array $hostnames = array(), array $ports = array())
+    public function __construct(array $addresses, string $state, array $hostnames = [], array $ports = [])
     {
         $this->addresses = $addresses;
-        $this->state     = $state;
+        $this->state = $state;
         $this->hostnames = $hostnames;
-        $this->ports     = $ports;
+        $this->ports = $ports;
     }
 
     public function setScripts(array $scripts)
@@ -57,29 +55,17 @@ class Host
     }
 
     /**
-     * @return string
-     *
-     * @deprecated The Host::getAddress() method is deprecated since 0.4 version. Use Host::getIpv4Addresses() instead.
-     */
-    public function getAddress() : string
-    {
-        return current($this->getIpv4Addresses())->getAddress();
-    }
-
-    /**
      * @return Address[]
      */
-    public function getAddresses() : array
+    public function getAddresses(): array
     {
         return $this->addresses;
     }
 
     /**
-     * @param string $type
-     *
      * @return Address[]
      */
-    private function getAddressesByType(string $type) : array
+    private function getAddressesByType(string $type): array
     {
         return array_filter($this->addresses, function (Address $address) use ($type) {
             return $address->getType() === $type;
@@ -89,7 +75,7 @@ class Host
     /**
      * @return Address[]
      */
-    public function getIpv4Addresses() : array
+    public function getIpv4Addresses(): array
     {
         return $this->getAddressesByType(Address::TYPE_IPV4);
     }
@@ -97,7 +83,7 @@ class Host
     /**
      * @return Address[]
      */
-    public function getMacAddresses() : array
+    public function getMacAddresses(): array
     {
         return $this->getAddressesByType(Address::TYPE_MAC);
     }
@@ -105,23 +91,17 @@ class Host
     /**
      * @return string
      */
-    public function getState() : string
+    public function getState(): string
     {
         return $this->state;
     }
 
-    /**
-     * @return string
-     */
-    public function getOs() : ?string
+    public function getOs(): ?string
     {
         return $this->os;
     }
 
-    /**
-     * @return int
-     */
-    public function getOsAccuracy() : ?int
+    public function getOsAccuracy(): ?int
     {
         return $this->os_accuracy;
     }
@@ -129,7 +109,7 @@ class Host
     /**
      * @return Hostname[]
      */
-    public function getHostnames() : array
+    public function getHostnames(): array
     {
         return $this->hostnames;
     }
@@ -137,7 +117,7 @@ class Host
     /**
      * @return Script[]
      */
-    public function getScripts() : array
+    public function getScripts(): array
     {
         return $this->scripts;
     }
@@ -145,7 +125,7 @@ class Host
     /**
      * @return Port[]
      */
-    public function getPorts() : array
+    public function getPorts(): array
     {
         return $this->ports;
     }
@@ -153,7 +133,7 @@ class Host
     /**
      * @return Port[]
      */
-    public function getOpenPorts() : array
+    public function getOpenPorts(): array
     {
         return array_filter($this->ports, function ($port) {
             return $port->isOpen();
@@ -163,10 +143,8 @@ class Host
     /**
      * @return Port[]
      */
-    public function getClosedPorts() : array
+    public function getClosedPorts(): array
     {
-        return array_filter($this->ports, function ($port) {
-            return $port->isClosed();
-        });
+        return array_filter($this->ports, fn ($port) => $port->isClosed());
     }
 }

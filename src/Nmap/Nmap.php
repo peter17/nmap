@@ -10,17 +10,16 @@
 
 namespace Nmap;
 
+use InvalidArgumentException;
 use Nmap\Util\ProcessExecutor;
+use RuntimeException;
 
-/**
- * @author William Durand <william.durand1@gmail.com>
- * @author Aitor García <aitor.falc@gmail.com>
- */
 class Nmap
 {
+
     private $executor;
 
-    private $outputFile;
+    private string $outputFile;
 
     private $enableOsDetection = false;
 
@@ -40,20 +39,12 @@ class Nmap
 
     private $extraOptions = [];
 
-    /**
-     * @return Nmap
-     */
     public static function create(): self
     {
         return new self();
     }
 
     /**
-     * @param ProcessExecutor $executor
-     * @param string $outputFile
-     * @param string $executable
-     * @param int $timeout
-     *
      * @throws \InvalidArgumentException
      */
     public function __construct(
@@ -66,28 +57,22 @@ class Nmap
         $this->executable = $executable;
 
         // If executor returns anything else than 0 (success exit code),
-        // throw an exeption since $executable is not executable.
-        if ($this->executor->execute(array($this->executable, ' -h')) !== 0) {
-            throw new \InvalidArgumentException(sprintf('`%s` is not executable.', $this->executable));
+        // throw an exception since $executable is not executable.
+        if ($this->executor->execute([$this->executable, ' -h']) !== 0) {
+            throw new InvalidArgumentException(sprintf('`%s` is not executable.', $this->executable));
         }
     }
 
-    /**
-     * @param array $options
-     * @return $this
-     */
-    public function setExtraOptions(array $options)
+    public function setExtraOptions(array $options): self
     {
         $this->extraOptions = $options;
         return $this;
     }
 
     /**
-     * @param array $targets
-     * @param array $ports
      * @return array - implode with ' ' to get a command line string.
      */
-    public function buildCommand(array $targets, array $ports = array()): array
+    public function buildCommand(array $targets, array $ports = []): array
     {
         $options = $this->extraOptions;
 
@@ -106,130 +91,98 @@ class Nmap
         if (true === $this->disablePortScan) {
             $options[] = '-sn';
         } elseif (!empty($ports)) {
-            $options[] = '-p ' . implode(',', $ports);
+            $options[] = '-p '.implode(',', $ports);
         }
 
-        if (true === $this->disableReverseDNS) {
+        if ($this->disableReverseDNS) {
             $options[] = '-n';
         }
 
-        if (true == $this->treatHostsAsOnline) {
+        if ($this->treatHostsAsOnline) {
             $options[] = '-Pn';
         }
 
         $options[] = '-oX';
         $options[] = $this->outputFile;
 
-        $command = array(
-            $this->executable,
-        );
-
-        $command = array_merge($command, $options, $targets);
-
-        return $command;
+        return array_merge([$this->executable], $options, $targets);
     }
 
-
     /**
-     * @param array $targets
-     * @param array $ports
-     *
      * @return Host[]
      */
-    public function scan(array $targets, array $ports = array()): array
+    public function scan(array $targets, array $ports = []): array
     {
         $command = $this->buildCommand($targets, $ports);
 
         $this->executor->execute($command, $this->timeout);
 
         if (!file_exists($this->outputFile)) {
-            throw new \RuntimeException(sprintf('Output file not found ("%s")', $this->outputFile));
+            throw new RuntimeException(sprintf('Output file not found ("%s")', $this->outputFile));
         }
 
         return XmlOutputParser::parseOutputFile($this->outputFile);
     }
 
-    /**
-     * @param boolean $enable
-     *
-     * @return Nmap
-     */
-    public function enableOsDetection($enable = true): self
+    public function enableOsDetection(bool $enable = true): self
     {
         $this->enableOsDetection = $enable;
 
         return $this;
     }
 
-    /**
-     * @param boolean $enable
-     *
-     * @return Nmap
-     */
-    public function enableServiceInfo($enable = true): self
+    public function enableServiceInfo(bool $enable = true): self
     {
         $this->enableServiceInfo = $enable;
 
         return $this;
     }
 
-    /**
-     * @param boolean $enable
-     *
-     * @return Nmap
-     */
-    public function enableVerbose($enable = true): self
+    public function enableVerbose(bool $enable = true): self
     {
         $this->enableVerbose = $enable;
 
         return $this;
     }
 
-    /**
-     * @param boolean $disable
-     *
-     * @return Nmap
-     */
-    public function disablePortScan($disable = true): self
+    public function disablePortScan(bool $disable = true): self
     {
         $this->disablePortScan = $disable;
 
         return $this;
     }
 
-    /**
-     * @param boolean $disable
-     *
-     * @return Nmap
-     */
-    public function disableReverseDNS($disable = true): self
+    public function disableReverseDNS(bool $disable = true): self
     {
         $this->disableReverseDNS = $disable;
 
         return $this;
     }
 
-    /**
-     * @param boolean $disable
-     *
-     * @return Nmap
-     */
-    public function treatHostsAsOnline($disable = true): self
+    public function treatHostsAsOnline(bool $disable = true): self
     {
         $this->treatHostsAsOnline = $disable;
 
         return $this;
     }
 
-    /**
-     * @param $timeout
-     *
-     * @return Nmap
-     */
-    public function setTimeout($timeout): self
+    public function setTimeout(int $timeout): self
     {
         $this->timeout = $timeout;
 
         return $this;
     }
+
+    /**
+     * @return \Nmap\Host[]
+     */
+    public function parseOutputFile(string $xmlFile)
+    {
+        if (!file_exists($xmlFile)) {
+            throw new RuntimeException(sprintf('Output file not found ("%s")', $xmlFile));
+        }
+
+        return XmlOutputParser::parseOutputFile($xmlFile);
+    }
+
 }

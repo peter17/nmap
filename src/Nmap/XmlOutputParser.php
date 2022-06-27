@@ -2,24 +2,25 @@
 
 namespace Nmap;
 
+use SimpleXMLElement;
+
 class XmlOutputParser
 {
 
     /**
-     * @param $xmlFile
      * @return Host[]
      */
-    public static function parseOutputFile($xmlFile)
+    public static function parseOutputFile(string $xmlFile): array
     {
         $xml = simplexml_load_file($xmlFile);
 
-        $hosts = array();
+        $hosts = [];
         foreach ($xml->host as $xmlHost) {
             $host = new Host(
                 self::parseAddresses($xmlHost),
-                (string)$xmlHost->status->attributes()->state,
-                isset($xmlHost->hostnames) ? self::parseHostnames($xmlHost->hostnames->hostname) : array(),
-                isset($xmlHost->ports) ? self::parsePorts($xmlHost->ports->port) : array()
+                (string) $xmlHost->status->attributes()->state,
+                isset($xmlHost->hostnames) ? self::parseHostnames($xmlHost->hostnames->hostname) : [],
+                isset($xmlHost->ports) ? self::parsePorts($xmlHost->ports->port) : []
             );
             if (isset($xmlHost->hostscript)) {
                 $host->setScripts(self::parseScripts($xmlHost->hostscript->script));
@@ -35,12 +36,11 @@ class XmlOutputParser
     }
 
     /**
-     * @param \SimpleXMLElement $xmlHostnames
      * @return Hostname[]
      */
-    public static function parseHostnames(\SimpleXMLElement $xmlHostnames)
+    public static function parseHostnames(SimpleXMLElement $xmlHostnames): array
     {
-        $hostnames = array();
+        $hostnames = [];
         foreach ($xmlHostnames as $hostname) {
             $attrs = $hostname->attributes();
             $name = $type = null;
@@ -50,7 +50,7 @@ class XmlOutputParser
             }
 
             if (!is_null($name) && !is_null($type)) {
-                $hostnames[] = new Hostname((string)$name, (string)$type);
+                $hostnames[] = new Hostname((string) $name, (string) $type);
             }
         }
 
@@ -58,36 +58,35 @@ class XmlOutputParser
     }
 
     /**
-     * @param \SimpleXMLElement $xmlHostscript
      * @return Script[]
      */
-    public static function parseScripts(\SimpleXMLElement $xmlScripts)
+    public static function parseScripts(SimpleXMLElement $xmlScripts): array
     {
-        $scripts = array();
+        $scripts = [];
         foreach ($xmlScripts as $xmlScript) {
             $attrs = $xmlScript->attributes();
-            if(null === $attrs) {
+            if (null === $attrs) {
                 continue;
             }
             $scripts[] = new Script(
                 $attrs->id,
                 $attrs->output,
-                isset($xmlScript->elem) || isset($xmlScript->table) ? self::parseScriptElems($xmlScript) : array()
+                isset($xmlScript->elem) || isset($xmlScript->table) ? self::parseScriptElems($xmlScript) : []
             );
         }
 
         return $scripts;
     }
 
-    public static function parseScriptElem(\SimpleXMLElement $xmlElems): array
+    public static function parseScriptElem(SimpleXMLElement $xmlElems): array
     {
-        $elems = array();
+        $elems = [];
         foreach ($xmlElems as $xmlElem) {
             if (empty($xmlElem->attributes())) {
                 $elems[] = (string) $xmlElem[0];
             } else {
                 $attrs = $xmlElem->attributes();
-                if(null === $attrs) {
+                if (null === $attrs) {
                     continue;
                 }
                 $elems[(string) $attrs->key] = (string) $xmlElem[0];
@@ -96,10 +95,10 @@ class XmlOutputParser
         return $elems;
     }
 
-    public static function parseScriptElems(\SimpleXMLElement $xmlScript): array
+    public static function parseScriptElems(SimpleXMLElement $xmlScript): array
     {
         if (isset($xmlScript->table)) {
-            $elems = array();
+            $elems = [];
             foreach ($xmlScript->table as $xmlTable) {
                 $elems[(string) $xmlTable->attributes()->key] = self::parseScriptElem($xmlTable->elem);
             }
@@ -110,23 +109,19 @@ class XmlOutputParser
     }
 
     /**
-     * @param \SimpleXMLElement $xmlPorts
      * @return Port[]
      */
-    public static function parsePorts(\SimpleXMLElement $xmlPorts): array
+    public static function parsePorts(SimpleXMLElement $xmlPorts): array
     {
-        /**
-         *
-         */
-        $ports = array();
+        $ports = [];
         foreach ($xmlPorts as $xmlPort) {
             $name = $product = $version = null;
 
             if ($xmlPort->service) {
                 $attrs = $xmlPort->service->attributes();
                 if (!is_null($attrs)) {
-                    $name = (string)$attrs->name;
-                    $product = (string)$attrs->product;
+                    $name = (string) $attrs->name;
+                    $product = (string) $attrs->product;
                     $version = $attrs->version;
                 }
             }
@@ -140,9 +135,9 @@ class XmlOutputParser
             $attrs = $xmlPort->attributes();
             if (!is_null($attrs)) {
                 $port = new Port(
-                    (int)$attrs->portid,
-                    (string)$attrs->protocol,
-                    (string)$xmlPort->state->attributes()->state,
+                    (int) $attrs->portid,
+                    (string) $attrs->protocol,
+                    (string) $xmlPort->state->attributes()->state,
                     $service
                 );
                 if (isset($xmlPort->script)) {
@@ -156,24 +151,24 @@ class XmlOutputParser
     }
 
     /**
-     * @param \SimpleXMLElement $host
      * @return Address[]
      */
-    public static function parseAddresses(\SimpleXMLElement $host): array
+    public static function parseAddresses(SimpleXMLElement $host): array
     {
-        $addresses = array();
+        $addresses = [];
         foreach ($host->xpath('./address') as $address) {
             $attributes = $address->attributes();
             if (is_null($attributes)) {
                 continue;
             }
-            $addresses[(string)$attributes->addr] = new Address(
-                (string)$attributes->addr,
-                (string)$attributes->addrtype,
-                isset($attributes->vendor) ? (string)$attributes->vendor : ''
+            $addresses[(string) $attributes->addr] = new Address(
+                (string) $attributes->addr,
+                (string) $attributes->addrtype,
+                isset($attributes->vendor) ? (string) $attributes->vendor : ''
             );
         }
 
         return $addresses;
     }
+
 }

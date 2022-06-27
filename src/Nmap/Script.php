@@ -5,20 +5,11 @@ namespace Nmap;
 class Script
 {
 
-    /**
-     * @var string 
-     */
-    private $id;
+    private string $id;
 
-    /**
-     * @var string
-     */
-    private $output;
+    private string $output;
 
-    /**
-     * @var array
-     */
-    private $elems;
+    private array $elems;
 
     public function __construct(string $id, string $output, array $elems)
     {
@@ -27,17 +18,17 @@ class Script
         $this->elems = $elems;
     }
 
-    public function getId()
+    public function getId(): string
     {
         return $this->id;
     }
 
-    public function getOutput()
+    public function getOutput(): string
     {
         return $this->output;
     }
 
-    public function getElems()
+    public function getElems(): array
     {
         return $this->elems;
     }
