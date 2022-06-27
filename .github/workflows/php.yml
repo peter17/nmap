@@ -32,7 +32,7 @@ jobs:
       run: composer lint
 
     - name: Run psalm
-      run: ./vendor/bin/psalm --php-version="${{ steps.setup-php.outputs.php-version }}" --output-format=github
+      run: ./vendor/bin/psalm --php-version=`echo ${{ steps.setup-php.outputs.php-version }}` --output-format=github
 
     - name: Run phpunit
       run: composer phpunit
