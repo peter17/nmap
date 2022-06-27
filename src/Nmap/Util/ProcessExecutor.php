@@ -10,6 +10,7 @@
 
 namespace Nmap\Util;
 
+use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
