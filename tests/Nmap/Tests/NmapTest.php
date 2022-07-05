@@ -285,7 +285,7 @@ class NmapTest extends TestCase
         $this->assertTrue($parser->validate($dtd));
     }
 
-    public function testOuputDefaultDtdPath()
+    public function testOutputDefaultDtdPath()
     {
         $this->assertTrue(file_exists(XmlOutputParser::$defaultDtd));
     }
