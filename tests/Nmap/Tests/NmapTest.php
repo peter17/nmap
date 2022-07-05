@@ -273,19 +273,21 @@ class NmapTest extends TestCase
 
     public function testOutputValidationInvalid()
     {
-        $parser = new XmlOutputParser(__DIR__.'/Fixtures/test_interrupted_invalid.xml');
-        $this->assertStringContainsString('Premature end of data in tag nmaprun', $parser->validate());
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_interrupted_invalid.xml');
+        $dtd = __DIR__.'/Fixtures/Validation/nmap.dtd';
+        $this->assertStringContainsString('Premature end of data in tag nmaprun', $parser->validate($dtd));
     }
 
     public function testOutputValidationValid()
     {
-        $parser = new XmlOutputParser(__DIR__.'/Fixtures/test_completed_valid.xml');
-        $this->assertTrue($parser->validate());
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
+        $dtd = __DIR__.'/Fixtures/Validation/nmap.dtd';
+        $this->assertTrue($parser->validate($dtd));
     }
 
     public function testOutputValidationValidByUsingDtdFallback()
     {
-        $parser = new XmlOutputParser(__DIR__.'/Fixtures/test_completed_valid.xml');
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
         $this->assertTrue($parser->validate('notavalidpath'));
     }
 
