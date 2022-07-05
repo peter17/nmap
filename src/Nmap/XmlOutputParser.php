@@ -4,7 +4,7 @@ namespace Nmap;
 
 use SimpleXMLElement;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
-use Symfony\Component\Process\Exception\ProcessFailedException;
+use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
 use Symfony\Component\Filesystem\Filesystem;
@@ -59,7 +59,7 @@ class XmlOutputParser
     {
         $xmlstarlet = (new ExecutableFinder)->find('xmlstarlet');
         if (empty($xmlstarlet)) {
-            throw new ProcessFailedException('xmlstarlet could not be found');
+            throw new RuntimeException('xmlstarlet could not be found');
         }
         return $xmlstarlet;
     }
