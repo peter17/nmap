@@ -8,6 +8,7 @@ use Nmap\Host;
 use Nmap\Nmap;
 use Nmap\Port;
 
+// todo: write tests for validation features.
 class NmapTest extends TestCase
 {
 

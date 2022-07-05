@@ -121,7 +121,7 @@ class Nmap
             throw new RuntimeException(sprintf('Output file not found ("%s")', $this->outputFile));
         }
 
-        return XmlOutputParser::parseOutputFile($this->outputFile);
+        return (new XmlOutputParser($this->outputFile))->parse();
     }
 
     public function enableOsDetection(bool $enable = true): self
@@ -178,11 +178,7 @@ class Nmap
      */
     public static function parseOutput(string $xmlFile)
     {
-        if (!file_exists($xmlFile)) {
-            throw new RuntimeException(sprintf('Output file not found ("%s")', $xmlFile));
-        }
-
-        return XmlOutputParser::parseOutputFile($xmlFile);
+        return (new XmlOutputParser($xmlFile))->parse();
     }
 
 }

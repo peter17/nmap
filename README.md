@@ -78,11 +78,27 @@ $nmap
 ```
 
 
-Import existing Nmap XML output
+Nmap XML output
 -------------------------------
+
+Parse existing output:
 
 ``` php
 Nmap::parseOutput($xmlFile);
+```
+
+or
+
+``` php
+$parser = new XmlOutputParser($xmlFile);
+$parser->parse();
+```
+
+Validation output file using the Nmap DTD. A custom DTD path can be passed to the validate function.
+
+```php
+$parser = new XmlOutputParser($xmlFile);
+$parser->validate();
 ```
 
 Installation
