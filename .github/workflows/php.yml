@@ -19,6 +19,9 @@ jobs:
         php-version: ${{ matrix.php-versions }}
         tools: composer
 
+    - name: Install xmlstarlet
+      run: sudo apt-get install -y xmlstarlet
+
     - name: Validate composer.json and composer.lock
       run: composer validate
 
