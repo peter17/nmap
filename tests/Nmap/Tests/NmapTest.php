@@ -285,7 +285,7 @@ class NmapTest extends TestCase
 
     public function testOutputValidationValidByUsingDtdFallback()
     {
-        $parser = new XmlOutputParser(__DIR__.'/Fixtures/completed_valid.xml');
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/test_completed_valid.xml');
         $this->assertTrue($parser->validate('notavalidpath'));
     }
 
