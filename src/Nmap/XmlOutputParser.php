@@ -32,7 +32,7 @@ class XmlOutputParser
      *
      * @link https://nmap.org/book/app-nmap-dtd.html
      */
-    private function getDtd(string $dtdPath = ''): string
+    private function getDtd($dtdPath = ''): string
     {
         $dtdPath = empty($dtdPath) ? '/usr/share/nmap/nmap.dtd' : $dtdPath;
         if ($this->filesystem->exists($dtdPath)) {
