@@ -11,6 +11,7 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class XmlOutputParser
 {
+    public static string $defaultDtd = '/usr/share/nmap/nmap.dtd';
 
     protected Filesystem $filesystem;
 
@@ -34,7 +35,7 @@ class XmlOutputParser
      */
     private function getDtd(?string $dtdPath = ''): string
     {
-        $dtdPath = empty($dtdPath) ? '/usr/share/nmap/nmap.dtd' : $dtdPath;
+        $dtdPath = empty($dtdPath) ? self::$defaultDtd : $dtdPath;
         if ($this->filesystem->exists($dtdPath)) {
             return $dtdPath;
         }
