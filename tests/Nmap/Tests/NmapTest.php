@@ -7,8 +7,8 @@ use Nmap\Address;
 use Nmap\Host;
 use Nmap\Nmap;
 use Nmap\Port;
+use Nmap\XmlOutputParser;
 
-// todo: write tests for validation features.
 class NmapTest extends TestCase
 {
 
@@ -269,6 +269,24 @@ class NmapTest extends TestCase
         $host = current($hosts);
         $this->assertCount(1, $hosts);
         $this->assertCount(5, $host->getPorts());
+    }
+
+    public function testOutputValidationInvalid()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/test_interrupted_invalid.xml');
+        $this->assertStringContainsString('Premature end of data in tag nmaprun', $parser->validate());
+    }
+
+    public function testOutputValidationValid()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/test_completed_valid.xml');
+        $this->assertTrue($parser->validate());
+    }
+
+    public function testOutputValidationValidByUsingDtdFallback()
+    {
+        $parser = new XmlOutputParser(base_path('_dev/output/nmap/completed_valid.xml'));
+        $this->assertTrue($parser->validate('notavalidpath'));
     }
 
 }
