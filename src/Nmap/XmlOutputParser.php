@@ -11,7 +11,12 @@ use Symfony\Component\Filesystem\Filesystem;
 
 class XmlOutputParser
 {
+    /**
+     * Default path on Linux, perhaps in future add Windows support.
+     */
     public static string $defaultDtd = '/usr/share/nmap/nmap.dtd';
+
+    public static string $xmlCloseTag = '</nmaprun>';
 
     protected Filesystem $filesystem;
 
@@ -25,6 +30,11 @@ class XmlOutputParser
         }
         $this->filesystem = $filesystem;
         $this->xmlFile = $xmlFile;
+    }
+
+    public function getXmlFile(): string
+    {
+        return $this->xmlFile;
     }
 
     /**
@@ -52,7 +62,7 @@ class XmlOutputParser
 
     /**
      * DTD Validation is done using xmlstarlet because this is very cumbersome using standard PHP.
-     * Besides validation xmlstarlet contains other useful features for future development.
+     * Besides validation, xmlstarlet contains other useful features for future development.
      *
      * @link http://xmlstar.sourceforge.net/
      */
@@ -68,6 +78,10 @@ class XmlOutputParser
     /**
      * Validate output file using DTD as recommended by Nmap.
      *
+     * Validation can fail if a much newer or older DTD is used than the Nmap version that created
+     * the output.
+     *
+     * @todo: optimize this to find DTD that is associated with nmap version.
      * @link http://xmlstar.sourceforge.net/doc/UG/ch04s04.html
      * @return bool|string true if valid, an error string if invalid
      */
@@ -85,6 +99,36 @@ class XmlOutputParser
 
         $error = $process->getErrorOutput();
         return empty($error) ? true : $error;
+    }
+
+    /**
+     * Nmap scans that have been cancelled/failed miss the XML closing element.
+     *
+     * This method is currently a simple attempt to 'fix' the XML by appending the XML closing tag. A copy of
+     * the original file is used, a new file is written to the directory 'recovered'. The xmlFile to import
+     * will be set to the recovered file. Note: This does not result in a XML that passes DTD validation.
+     * However, the input can be be parsed.
+     *
+     * todo: perhaps 'xmlstarlet do --recover' could be used for recovery (also more for more complex cases).
+     *   However, 'xmlstartlet' appears to adjust the encoding, it is unclear what the impact of this is.
+     */
+    public function attemptFixInvalidFile(): bool
+    {
+        if (preg_match('%'. preg_quote(XmlOutputParser::$xmlCloseTag) . '\s+$%m', file_get_contents($this->xmlFile))) {
+            return false;
+        }
+
+        $pathinfo = pathinfo($this->xmlFile);
+        $recoveryDir = $pathinfo['dirname'] . '/recovered';
+        if (! $this->filesystem->exists($recoveryDir)) {
+            $this->filesystem->mkdir($recoveryDir);
+        }
+
+        $newXmlPath = $recoveryDir . '/' . $pathinfo['basename'];
+        $this->filesystem->copy($this->xmlFile, $newXmlPath);
+        $this->filesystem->appendToFile($newXmlPath, XmlOutputParser::$xmlCloseTag);
+        $this->xmlFile = $newXmlPath;
+        return true;
     }
 
     /**

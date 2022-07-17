@@ -16,6 +16,10 @@ class NmapTest extends TestCase
     {
         m::close();
         parent::tearDown();
+
+        if ($this->filesystem->exists($recoverDir = __DIR__.'/Fixtures/Validation/recovered')) {
+            $this->filesystem->remove($recoverDir);
+        }
     }
 
     public function testScanBasic()
@@ -287,7 +291,7 @@ class NmapTest extends TestCase
 
     public function testOutputDefaultDtdPath()
     {
-        $this->assertTrue(file_exists(XmlOutputParser::$defaultDtd));
+        $this->assertFileExists(XmlOutputParser::$defaultDtd);
     }
 
     public function testOutputValidationValidByUsingDtdFallback()
@@ -295,6 +299,26 @@ class NmapTest extends TestCase
         $this->markTestSkipped('todo: github does not allow download external files');
         $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
         $this->assertTrue($parser->validate('notavalidpath'));
+    }
+
+    public function testOutputFileRecovery()
+    {
+        // Invalid input
+        $input = __DIR__.'/Fixtures/Validation/test_interrupted_invalid.xml';
+        $parser = new XmlOutputParser($input);
+        $this->assertTrue($parser->attemptFixInvalidFile());
+
+        // Assert recovery
+        $output = __DIR__.'/Fixtures/Validation/recovered/test_interrupted_invalid.xml';
+        $this->assertFileExists($output);
+        $this->assertTrue(filesize($output) > filesize($input));
+        $this->assertStringEndsWith(XmlOutputParser::$xmlCloseTag, file_get_contents($output));
+    }
+
+    public function testOutputFileRecoveryOnValidFile()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
+        $this->assertFalse($parser->attemptFixInvalidFile());
     }
 
 }
