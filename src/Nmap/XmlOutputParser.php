@@ -41,23 +41,26 @@ class XmlOutputParser
      * Check if DTD is present under default install path. If not attempt to download
      * the most recent.
      *
+     * todo: refresh latast DTD and change path to __DIR__ . '/../tmp/nmap.dtd';
+     *
      * @link https://nmap.org/book/app-nmap-dtd.html
      */
-    private function getDtd(?string $dtdPath = ''): string
+    private function getDtdFiles(?string $dtdPath = ''): array
     {
+        $dtds = [];
         $dtdPath = empty($dtdPath) ? self::$defaultDtd : $dtdPath;
         if ($this->filesystem->exists($dtdPath)) {
-            return $dtdPath;
+            $dtds[] = $dtdPath;
         }
 
-        // Download official Nmap DTD
+        // Download latest official Nmap DTD
         $dtdPath = '/tmp/nmap.dtd';
-        if ($this->filesystem->exists($dtdPath)) {
-            return $dtdPath;
+        if (! $this->filesystem->exists($dtdPath)) {
+            $this->filesystem->dumpFile($dtdPath, file_get_contents('https://svn.nmap.org/nmap/docs/nmap.dtd'));
         }
+        $dtds[] = $dtdPath;
 
-        $this->filesystem->dumpFile($dtdPath, 'https://svn.nmap.org/nmap/docs/nmap.dtd');
-        return $dtdPath;
+        return $dtds;
     }
 
     /**
@@ -79,7 +82,7 @@ class XmlOutputParser
      * Validate output file using DTD as recommended by Nmap.
      *
      * Validation can fail if a much newer or older DTD is used than the Nmap version that created
-     * the output.
+     * the output. Start validation with installed version, if fails or missing fetch latest DTD.
      *
      * @todo: optimize this to find DTD that is associated with nmap version.
      * @link http://xmlstar.sourceforge.net/doc/UG/ch04s04.html
@@ -87,18 +90,27 @@ class XmlOutputParser
      */
     public function validate($dtdPath = null): bool|string
     {
-        $process = new Process([
-            $this->getXmlstarlet(),
-            'val',
-            '-e',
-            '--dtd', $this->getDtd($dtdPath),
-            $this->xmlFile
-        ]);
-        $process->setTimeout(900);
-        $process->run();
+        $dtdFiles = $this->getDtdFiles($dtdPath);
+        $len = count($dtdFiles);
+        foreach ($dtdFiles as $index => $dtdFile) {
+            $process = new Process([
+                $this->getXmlstarlet(),
+                'val',
+                '-e',
+                '--dtd', $dtdFile,
+                $this->xmlFile
+            ]);
+            $process->setTimeout(900);
+            $process->run();
 
-        $error = $process->getErrorOutput();
-        return empty($error) ? true : $error;
+            $error = $process->getErrorOutput();
+            if (empty($error)) {
+                return true;
+            }
+            if ($index == $len - 1) {
+                return $error;
+            }
+        }
     }
 
     /**

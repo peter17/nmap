@@ -296,7 +296,6 @@ class NmapTest extends TestCase
 
     public function testOutputValidationValidByUsingDtdFallback()
     {
-        $this->markTestSkipped('todo: github does not allow download external files');
         $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
         $this->assertTrue($parser->validate('notavalidpath'));
     }
