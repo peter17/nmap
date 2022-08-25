@@ -41,7 +41,7 @@ class XmlOutputParser
      * Check if DTD is present under default install path. If not attempt to download
      * the most recent.
      *
-     * todo: refresh latast DTD and change path to __DIR__ . '/../tmp/nmap.dtd';
+     * todo: refresh latast dtd and change path to __DIR__ . '/../tmp/nmap.dtd';
      *
      * @link https://nmap.org/book/app-nmap-dtd.html
      */
@@ -111,6 +111,7 @@ class XmlOutputParser
                 return $error;
             }
         }
+        return 'Error';
     }
 
     /**
