@@ -10,14 +10,11 @@
 
 namespace Nmap;
 
-/**
- * @author William Durand <william.durand1@gmail.com>
- */
 class Hostname
 {
-    private $name;
+    private string $name;
 
-    private $type;
+    private string $type;
 
     public function __construct(string $name, string $type)
     {
@@ -25,12 +22,12 @@ class Hostname
         $this->type = $type;
     }
 
-    public function getName() : string
+    public function getName(): string
     {
         return $this->name;
     }
 
-    public function getType() : string
+    public function getType(): string
     {
         return $this->type;
     }

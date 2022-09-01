@@ -10,16 +10,14 @@
 
 namespace Nmap;
 
-/**
- * @author William Durand <william.durand1@gmail.com>
- */
 class Service
 {
-    private $name;
 
-    private $product;
+    private ?string $name;
 
-    private $version;
+    private ?string $product;
+
+    private ?string $version;
 
     public function __construct(string $name = null, string $product = null, string $version = null)
     {
@@ -28,27 +26,17 @@ class Service
         $this->version = $version;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getName()
+    public function getName(): ?string
     {
         return $this->name;
     }
 
-
-    /**
-     * @return string|null
-     */
-    public function getProduct()
+    public function getProduct(): ?string
     {
         return $this->product;
     }
 
-    /**
-     * @return string|null
-     */
-    public function getVersion()
+    public function getVersion(): ?string
     {
         return $this->version;
     }
