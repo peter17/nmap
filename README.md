@@ -77,6 +77,18 @@ $nmap
     ->scan([ 'example.com' ]);
 ```
 
+You can run specific scripts with `setScripts()` and get the result with `getScripts()`:
+
+``` php
+$hosts = $nmap
+    ->setTimeout(120)
+    ->scan([ 'example.com' ], [ 443 ]);
+    
+$hosts[0]->setScripts(['ssl-heartbleed']);
+$ports = $hosts[0]->getOpenPorts();
+
+$ports[0]->getScripts();
+```
 
 Nmap XML output
 -------------------------------
