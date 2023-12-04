@@ -4,11 +4,21 @@ namespace Nmap;
 
 class Script
 {
-    private string $id;
 
-    private string $output;
+    /**
+     * @var string 
+     */
+    private $id;
 
-    private array $elems;
+    /**
+     * @var string
+     */
+    private $output;
+
+    /**
+     * @var array
+     */
+    private $elems;
 
     public function __construct(string $id, string $output, array $elems)
     {

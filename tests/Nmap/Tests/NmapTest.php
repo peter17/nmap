@@ -10,7 +10,7 @@ use Nmap\Port;
 
 class NmapTest extends TestCase
 {
-    public function tearDown()
+    public function tearDown(): void
     {
         m::close();
         parent::tearDown();

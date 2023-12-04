@@ -51,7 +51,7 @@ class Host
         $this->os = $os;
     }
 
-    public function setOsAccuracy(string $accuracy)
+    public function setOsAccuracy(int $accuracy)
     {
         $this->os_accuracy = $accuracy;
     }
