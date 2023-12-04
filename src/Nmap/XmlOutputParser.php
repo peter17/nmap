@@ -157,7 +157,6 @@ class XmlOutputParser
 
         $hosts = [];
         foreach ($xml->host as $xmlHost) {
-
             $state = $xmlHost->status->attributes()->state ?? null;
             if ($state === null) {
                 // ? log ? throw?
@@ -272,7 +271,6 @@ class XmlOutputParser
         if (isset($xmlScript->table)) {
             $elems = [];
             foreach ($xmlScript->table as $xmlTable) {
-
                 $attributes = $xmlTable->attributes();
                 if ($attributes === null) {
                     continue;
@@ -326,7 +324,6 @@ class XmlOutputParser
 
             $attrs = $xmlPort->attributes();
             if (!is_null($attrs) && !is_null($xmlPort->state)) {
-
                 $state = $xmlPort->state->attributes()->state ?? null;
 
                 if ($state === null) {
@@ -376,5 +373,4 @@ class XmlOutputParser
 
         return $addresses;
     }
-
 }

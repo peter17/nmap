@@ -180,5 +180,4 @@ class Nmap
     {
         return (new XmlOutputParser($xmlFile))->parse();
     }
-
 }
