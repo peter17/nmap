@@ -4,10 +4,10 @@ namespace Nmap;
 
 use SimpleXMLElement;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Process\Exception\RuntimeException;
 use Symfony\Component\Process\ExecutableFinder;
 use Symfony\Component\Process\Process;
-use Symfony\Component\Filesystem\Filesystem;
 
 class XmlOutputParser
 {
@@ -25,7 +25,7 @@ class XmlOutputParser
     public function __construct(string $xmlFile)
     {
         $filesystem = new Filesystem();
-        if (! $filesystem->exists($xmlFile)) {
+        if (!$filesystem->exists($xmlFile)) {
             throw new FileNotFoundException($xmlFile);
         }
         $this->filesystem = $filesystem;
@@ -55,7 +55,7 @@ class XmlOutputParser
 
         // Download latest official Nmap DTD
         $dtdPath = '/tmp/nmap.dtd';
-        if (! $this->filesystem->exists($dtdPath)) {
+        if (!$this->filesystem->exists($dtdPath)) {
             $this->filesystem->dumpFile($dtdPath, file_get_contents('https://svn.nmap.org/nmap/docs/nmap.dtd'));
         }
         $dtds[] = $dtdPath;
@@ -84,9 +84,9 @@ class XmlOutputParser
      * Validation can fail if a much newer or older DTD is used than the Nmap version that created
      * the output. Start validation with installed version, if fails or missing fetch latest DTD.
      *
-     * @todo: optimize this to find DTD that is associated with nmap version.
-     * @link http://xmlstar.sourceforge.net/doc/UG/ch04s04.html
      * @return bool|string true if valid, an error string if invalid
+     * @link http://xmlstar.sourceforge.net/doc/UG/ch04s04.html
+     * @todo: optimize this to find DTD that is associated with nmap version.
      */
     public function validate($dtdPath = null): bool|string
     {
@@ -127,13 +127,13 @@ class XmlOutputParser
      */
     public function attemptFixInvalidFile(): bool
     {
-        if (preg_match('%'. preg_quote(XmlOutputParser::$xmlCloseTag) . '\s+$%m', file_get_contents($this->xmlFile))) {
+        if (preg_match('%' . preg_quote(XmlOutputParser::$xmlCloseTag) . '\s+$%m', file_get_contents($this->xmlFile))) {
             return false;
         }
 
         $pathinfo = pathinfo($this->xmlFile);
         $recoveryDir = $pathinfo['dirname'] . '/recovered';
-        if (! $this->filesystem->exists($recoveryDir)) {
+        if (!$this->filesystem->exists($recoveryDir)) {
             $this->filesystem->mkdir($recoveryDir);
         }
 
@@ -151,20 +151,50 @@ class XmlOutputParser
     {
         $xml = simplexml_load_file($this->xmlFile);
 
+        if (!$xml instanceof SimpleXMLElement || !isset($xml->host)) {
+            throw new \InvalidArgumentException("{$this->xmlFile} does not appear to be valid.");
+        }
+
         $hosts = [];
         foreach ($xml->host as $xmlHost) {
+
+            $state = $xmlHost->status->attributes()->state ?? null;
+            if ($state === null) {
+                // ? log ? throw?
+                continue;
+            }
+
+            $hostnameElement = $xmlHost->hostnames->hostname;
+
+            if (!$hostnameElement instanceof SimpleXMLElement) {
+                continue; // ? log ? throw?
+            }
+
+            $ports = $xmlHost->ports;
+
             $host = new Host(
                 self::parseAddresses($xmlHost),
-                (string) $xmlHost->status->attributes()->state,
+                (string)$state,
                 isset($xmlHost->hostnames) ? self::parseHostnames($xmlHost->hostnames->hostname) : [],
-                isset($xmlHost->ports) ? self::parsePorts($xmlHost->ports->port) : []
+                $ports ? self::parsePorts($ports->port) : []
             );
-            if (isset($xmlHost->hostscript)) {
-                $host->setScripts(self::parseScripts($xmlHost->hostscript->script));
+
+            $script = $xmlHost->hostscript->script ?? null;
+
+            if ($script !== null) {
+                $host->setScripts(self::parseScripts($script));
             }
             if (isset($xmlHost->os->osmatch)) {
-                $host->setOs((string) $xmlHost->os->osmatch->attributes()->name);
-                $host->setOsAccuracy((int) $xmlHost->os->osmatch->attributes()->accuracy);
+                $osName = $xmlHost->os->osmatch->attributes()->name ?? null;
+                $osAccuracy = $xmlHost->os->osmatch->attributes()->accuracy ?? null;
+
+                if ($osName !== null) {
+                    $host->setOs((string)$osName);
+                }
+
+                if ($osAccuracy !== null) {
+                    $host->setOsAccuracy((int)$osAccuracy);
+                }
             }
             $hosts[] = $host;
         }
@@ -187,7 +217,7 @@ class XmlOutputParser
             }
 
             if (!is_null($name) && !is_null($type)) {
-                $hostnames[] = new Hostname((string) $name, (string) $type);
+                $hostnames[] = new Hostname((string)$name, (string)$type);
             }
         }
 
@@ -202,12 +232,12 @@ class XmlOutputParser
         $scripts = [];
         foreach ($xmlScripts as $xmlScript) {
             $attrs = $xmlScript->attributes();
-            if (null === $attrs) {
+            if (null === $attrs || $attrs->id === null || $attrs->output === null) {
                 continue;
             }
             $scripts[] = new Script(
-                $attrs->id,
-                $attrs->output,
+                (string)$attrs->id,
+                (string)$attrs->output,
                 isset($xmlScript->elem) || isset($xmlScript->table) ? self::parseScriptElems($xmlScript) : []
             );
         }
@@ -220,13 +250,18 @@ class XmlOutputParser
         $elems = [];
         foreach ($xmlElems as $xmlElem) {
             if (empty($xmlElem->attributes())) {
-                $elems[] = (string) $xmlElem[0];
+                $elems[] = (string)$xmlElem[0];
             } else {
                 $attrs = $xmlElem->attributes();
                 if (null === $attrs) {
                     continue;
                 }
-                $elems[(string) $attrs->key] = (string) $xmlElem[0];
+                $key = $attrs->key ?? null;
+                if ($key === null) {
+                    continue;
+                }
+                $key = (string)$key;
+                $elems[$key] = (string)$xmlElem[0];
             }
         }
         return $elems;
@@ -237,12 +272,32 @@ class XmlOutputParser
         if (isset($xmlScript->table)) {
             $elems = [];
             foreach ($xmlScript->table as $xmlTable) {
-                $elems[(string) $xmlTable->attributes()->key] = self::parseScriptElem($xmlTable->elem);
+
+                $attributes = $xmlTable->attributes();
+                if ($attributes === null) {
+                    continue;
+                }
+
+                $key = $attributes->key;
+                if ($key === null) {
+                    continue;
+                }
+                $key = (string)$key;
+
+                $elem = $xmlTable->elem ?? null;
+
+                if ($elem) {
+                    $elems[$key] = self::parseScriptElem($elem);
+                }
             }
             return $elems;
         }
 
-        return self::parseScriptElem($xmlScript->elem);
+        $elem = $xmlScript->elem ?? null;
+        if ($elem) {
+            return self::parseScriptElem($elem);
+        }
+        throw new \InvalidArgumentException("XML must contain either a table for a single elem element");
     }
 
     /**
@@ -257,9 +312,9 @@ class XmlOutputParser
             if ($xmlPort->service) {
                 $attrs = $xmlPort->service->attributes();
                 if (!is_null($attrs)) {
-                    $name = (string) $attrs->name;
-                    $product = (string) $attrs->product;
-                    $version = $attrs->version;
+                    $name = (string)$attrs->name;
+                    $product = (string)$attrs->product;
+                    $version = (string)$attrs->version;
                 }
             }
 
@@ -270,11 +325,19 @@ class XmlOutputParser
             );
 
             $attrs = $xmlPort->attributes();
-            if (!is_null($attrs)) {
+            if (!is_null($attrs) && !is_null($xmlPort->state)) {
+
+                $state = $xmlPort->state->attributes()->state ?? null;
+
+                if ($state === null) {
+                    // ?? throw ? log ?
+                    continue;
+                }
+
                 $port = new Port(
-                    (int) $attrs->portid,
-                    (string) $attrs->protocol,
-                    (string) $xmlPort->state->attributes()->state,
+                    (int)$attrs->portid,
+                    (string)$attrs->protocol,
+                    (string)$state,
                     $service
                 );
                 if (isset($xmlPort->script)) {
@@ -293,15 +356,21 @@ class XmlOutputParser
     public static function parseAddresses(SimpleXMLElement $host): array
     {
         $addresses = [];
-        foreach ($host->xpath('./address') as $address) {
+
+        $iter = $host->xpath('./address');
+
+        if ($iter === false || $iter === null) {
+            return $addresses;
+        }
+        foreach ($iter as $address) {
             $attributes = $address->attributes();
             if (is_null($attributes)) {
                 continue;
             }
-            $addresses[(string) $attributes->addr] = new Address(
-                (string) $attributes->addr,
-                (string) $attributes->addrtype,
-                isset($attributes->vendor) ? (string) $attributes->vendor : ''
+            $addresses[(string)$attributes->addr] = new Address(
+                (string)$attributes->addr,
+                (string)$attributes->addrtype,
+                isset($attributes->vendor) ? (string)$attributes->vendor : ''
             );
         }
 

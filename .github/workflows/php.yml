@@ -4,10 +4,10 @@ on: [push]
 
 jobs:
   build:
-   runs-on: ubuntu-18.04
+   runs-on: ubuntu-22.04
    strategy:
       matrix:
-        php-versions: ['8.0', '8.1']
+        php-versions: ['8.0', '8.1', '8.2', '8.3']
 
    steps:
 
@@ -38,7 +38,7 @@ jobs:
       run: composer lint
 
     - name: Run psalm
-      run: ./vendor/bin/psalm --php-version=${{ matrix.php-versions }} --output-format=github
+      run: ./vendor/bin/psalm.phar --php-version=${{ matrix.php-versions }} --output-format=github
 
     - name: Run phpunit
       run: composer phpunit
