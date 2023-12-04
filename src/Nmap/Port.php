@@ -10,46 +10,29 @@
 
 namespace Nmap;
 
-/**
- * @author William Durand <william.durand1@gmail.com>
- */
 class Port
 {
-    const STATE_OPEN   = 'open';
+
+    const STATE_OPEN = 'open';
 
     const STATE_CLOSED = 'closed';
 
-    /**
-     * @var int
-     */
-    private $number;
+    private int $number;
 
-    /**
-     * @var string
-     */
-    private $protocol;
+    private string $protocol;
 
-    /**
-     * @var string
-     */
-    private $state;
+    private string $state;
 
-    /**
-     * @var Service
-     */
-    private $service;
+    private Service $service;
 
-    /**
-     * @var array
-     */
-    private $scripts = [];
+    private array $scripts = [];
 
     public function __construct(int $number, string $protocol, string $state, Service $service)
     {
-        $this->number   = $number;
+        $this->number = $number;
         $this->protocol = $protocol;
-        $this->state    = $state;
-        $this->service  = $service;
+        $this->state = $state;
+        $this->service = $service;
     }
 
     public function setScripts(array $scripts)
@@ -57,18 +40,12 @@ class Port
         $this->scripts = $scripts;
     }
 
-    /**
-     * @return integer
-     */
-    public function getNumber()
+    public function getNumber(): int
     {
         return $this->number;
     }
 
-    /**
-     * @return string
-     */
-    public function getProtocol()
+    public function getProtocol(): string
     {
         return $this->protocol;
     }
@@ -76,26 +53,22 @@ class Port
     /**
      * @return string one of self::STATE_OPEN or STATE_CLOSED
      */
-    public function getState()
+    public function getState(): string
     {
         return $this->state;
     }
 
-
-    public function isOpen() : bool
+    public function isOpen(): bool
     {
         return self::STATE_OPEN === $this->state;
     }
 
-    public function isClosed() : bool
+    public function isClosed(): bool
     {
         return self::STATE_CLOSED === $this->state;
     }
 
-    /**
-     * @return Service
-     */
-    public function getService() : Service
+    public function getService(): Service
     {
         return $this->service;
     }
@@ -103,7 +76,7 @@ class Port
     /**
      * @return Script[]
      */
-    public function getScripts() : array
+    public function getScripts(): array
     {
         return $this->scripts;
     }

@@ -7,18 +7,24 @@ use Nmap\Address;
 use Nmap\Host;
 use Nmap\Nmap;
 use Nmap\Port;
+use Nmap\XmlOutputParser;
 
 class NmapTest extends TestCase
 {
+
     public function tearDown(): void
     {
         m::close();
         parent::tearDown();
+
+        if ($this->filesystem->exists($recoverDir = __DIR__.'/Fixtures/Validation/recovered')) {
+            $this->filesystem->remove($recoverDir);
+        }
     }
 
     public function testScanBasic()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan.xml';
+        $outputFile = __DIR__.'/Fixtures/test_scan.xml';
 
         $expectedCommand = ["nmap", "-oX", $outputFile, 'williamdurand.fr'];
 
@@ -26,12 +32,11 @@ class NmapTest extends TestCase
 
 
         $nmap = new Nmap($executor, $outputFile);
-        $hosts = $nmap->scan(array('williamdurand.fr'));
+        $hosts = $nmap->scan(['williamdurand.fr']);
         $this->assertCount(1, $hosts);
 
         $host = current($hosts);
 
-        $this->assertEquals('204.232.175.78', $host->getAddress()); // deprecated
         $this->assertCount(2, $host->getAddresses());
         $this->assertEquals('204.232.175.78', current($host->getIpv4Addresses())->getAddress());
         $this->assertArrayHasKey('204.232.175.78', $host->getIpv4Addresses());
@@ -66,19 +71,18 @@ class NmapTest extends TestCase
 
     public function testScanSpecifyingPorts()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan_specifying_ports.xml';
+        $outputFile = __DIR__.'/Fixtures/test_scan_specifying_ports.xml';
 
         $expectedCommand = ["nmap", "-p 21,22,80", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
 
         $nmap = new Nmap($executor, $outputFile);
-        $hosts = $nmap->scan(array('williamdurand.fr'), array(21, 22, 80));
+        $hosts = $nmap->scan(['williamdurand.fr'], [21, 22, 80]);
         $this->assertCount(1, $hosts);
 
         $host = current($hosts);
 
-        $this->assertEquals('204.232.175.78', $host->getAddress()); // deprecated
         $this->assertCount(1, $host->getAddresses());
         $this->assertEquals('204.232.175.78', current($host->getIpv4Addresses())->getAddress());
         $this->assertArrayHasKey('204.232.175.78', $host->getIpv4Addresses());
@@ -106,30 +110,31 @@ class NmapTest extends TestCase
 
     public function testScanWithOsDetection()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan_with_os_detection.xml';
-        $expectedCommand = array("nmap", "-O", "-oX", $outputFile, 'williamdurand.fr');
+        $outputFile = __DIR__.'/Fixtures/test_scan_with_os_detection.xml';
+        $expectedCommand = ["nmap", "-O", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
-
 
         $nmap = new Nmap($executor, $outputFile);
         $hosts = $nmap
             ->enableOsDetection()
-            ->scan(array('williamdurand.fr'));
+            ->scan(['williamdurand.fr']);
+
+        $this->assertEquals($hosts[0]->getOs(), 'Cisco SRP 521W WAP (Linux 2.6)');
+        $this->assertEquals($hosts[0]->getOsAccuracy(), 93);
     }
 
     public function testScanWithServiceInfo()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan_with_service_info.xml';
-        $expectedCommand = array("nmap", "-sV", "-oX", $outputFile, 'williamdurand.fr');
+        $outputFile = __DIR__.'/Fixtures/test_scan_with_service_info.xml';
+        $expectedCommand = ["nmap", "-sV", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
-
 
         $nmap = new Nmap($executor, $outputFile);
         $hosts = $nmap
             ->enableServiceInfo()
-            ->scan(array('williamdurand.fr'));
+            ->scan(['williamdurand.fr']);
 
         $host = current($hosts);
         $ports = $host->getPorts();
@@ -146,8 +151,8 @@ class NmapTest extends TestCase
 
     public function testScanWithVerbose()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan_with_verbose.xml';
-        $expectedCommand = array("nmap", "-v", "-oX", $outputFile, 'williamdurand.fr');
+        $outputFile = __DIR__.'/Fixtures/test_scan_with_verbose.xml';
+        $expectedCommand = ["nmap", "-v", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
 
@@ -155,68 +160,57 @@ class NmapTest extends TestCase
 
         $hosts = $nmap
             ->enableVerbose()
-            ->scan(array('williamdurand.fr'));
+            ->scan(['williamdurand.fr']);
 
         $this->assertNotEmpty($hosts);
     }
 
     public function testPingScan()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_ping_scan.xml';
-        $expectedCommand = array("nmap", "-sn", "-oX", $outputFile, 'williamdurand.fr');
+        $outputFile = __DIR__.'/Fixtures/test_ping_scan.xml';
+        $expectedCommand = ["nmap", "-sn", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
 
         $nmap = new Nmap($executor, $outputFile);
         $hosts = $nmap
             ->disablePortScan()
-            ->scan(array('williamdurand.fr'));
+            ->scan(['williamdurand.fr']);
 
         $this->assertNotEmpty($hosts);
     }
 
     public function testScanWithoutReverseDNS()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_ping_without_reverse_dns.xml';
-        $expectedCommand = array("nmap", "-n", "-oX", $outputFile, 'williamdurand.fr');
+        $outputFile = __DIR__.'/Fixtures/test_ping_without_reverse_dns.xml';
+        $expectedCommand = ["nmap", "-n", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
 
         $nmap = new Nmap($executor, $outputFile);
         $hosts = $nmap
             ->disableReverseDNS()
-            ->scan(array('williamdurand.fr'));
+            ->scan(['williamdurand.fr']);
 
         $this->assertNotEmpty($hosts);
     }
 
     public function testScanWithTreatHostsAsOnline()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan_with_verbose.xml';
-        $expectedCommand = array("nmap", "-Pn", "-oX", $outputFile, 'williamdurand.fr');
+        $outputFile = __DIR__.'/Fixtures/test_scan_with_verbose.xml';
+        $expectedCommand = ["nmap", "-Pn", "-oX", $outputFile, 'williamdurand.fr'];
 
         $executor = $this->getProcessExecutorMock($expectedCommand);
 
         $nmap = new Nmap($executor, $outputFile);
-        $hosts = $nmap->treatHostsAsOnline()->scan(array('williamdurand.fr'));
+        $hosts = $nmap->treatHostsAsOnline()->scan(['williamdurand.fr']);
 
         $this->assertNotEmpty($nmap);
     }
 
-    public function testScanWithDefaultTimeout()
-    {
-        $outputFile = __DIR__ . '/Fixtures/test_scan.xml';
-
-        $executor = $this->getProcessExecutorMock(['nmap', '-oX', $outputFile, 'williamdurand.fr']);
-
-
-        $nmap = new Nmap($executor, $outputFile);
-        $nmap->scan(array('williamdurand.fr'));
-    }
-
     public function testScanWithUserTimeout()
     {
-        $outputFile = __DIR__ . '/Fixtures/test_scan.xml';
+        $outputFile = __DIR__.'/Fixtures/test_scan.xml';
         $timeout = 123;
 
         $mock = m::mock(\Nmap\Util\ProcessExecutor::class);
@@ -231,9 +225,8 @@ class NmapTest extends TestCase
                 return $timeout == 123;
             })->once()->andReturn(0);
 
-
         $nmap = new Nmap($mock, $outputFile);
-        $nmap->setTimeout($timeout)->scan(array('williamdurand.fr'));
+        $nmap->setTimeout($timeout)->scan(['williamdurand.fr']);
     }
 
     public function testExecutableNotExecutable()
@@ -248,7 +241,6 @@ class NmapTest extends TestCase
 
         $this->expectException(\InvalidArgumentException::class);
         new Nmap($mock);
-
     }
 
     /**
@@ -267,12 +259,65 @@ class NmapTest extends TestCase
             ->shouldReceive('execute')
             ->withArgs([
                 $expectedCommand,
-                60
+                60,
             ])
             ->once()
             ->andReturn(0);
 
         return $mock;
+    }
+
+    public function testExistingXmlOutputFileCanBeParsed()
+    {
+        $hosts = Nmap::parseOutput(__DIR__.'/Fixtures/test_scan.xml');
+        $host = current($hosts);
+        $this->assertCount(1, $hosts);
+        $this->assertCount(5, $host->getPorts());
+    }
+
+    public function testOutputValidationInvalid()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_interrupted_invalid.xml');
+        $dtd = __DIR__.'/Fixtures/Validation/nmap.dtd';
+        $this->assertStringContainsString('Premature end of data in tag nmaprun', $parser->validate($dtd));
+    }
+
+    public function testOutputValidationValid()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
+        $dtd = __DIR__.'/Fixtures/Validation/nmap.dtd';
+        $this->assertTrue($parser->validate($dtd));
+    }
+
+    public function testOutputDefaultDtdPath()
+    {
+        $this->assertFileExists(XmlOutputParser::$defaultDtd);
+    }
+
+    public function testOutputValidationValidByUsingDtdFallback()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
+        $this->assertTrue($parser->validate('notavalidpath'));
+    }
+
+    public function testOutputFileRecovery()
+    {
+        // Invalid input
+        $input = __DIR__.'/Fixtures/Validation/test_interrupted_invalid.xml';
+        $parser = new XmlOutputParser($input);
+        $this->assertTrue($parser->attemptFixInvalidFile());
+
+        // Assert recovery
+        $output = __DIR__.'/Fixtures/Validation/recovered/test_interrupted_invalid.xml';
+        $this->assertFileExists($output);
+        $this->assertTrue(filesize($output) > filesize($input));
+        $this->assertStringEndsWith(XmlOutputParser::$xmlCloseTag, file_get_contents($output));
+    }
+
+    public function testOutputFileRecoveryOnValidFile()
+    {
+        $parser = new XmlOutputParser(__DIR__.'/Fixtures/Validation/test_completed_valid.xml');
+        $this->assertFalse($parser->attemptFixInvalidFile());
     }
 
 }

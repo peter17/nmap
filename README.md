@@ -1,12 +1,14 @@
-nmap
+**This project is maintained fork of the original project: https://github.com/willdurand/nmap**
+
+Nmap
 ====
 
-**nmap** is a PHP wrapper for [Nmap](http://nmap.org/), a free security scanner
+**Nmap** is a PHP wrapper for [Nmap](http://nmap.org/), a free security scanner
 for network exploration.
 
 ![PHP Build](https://github.com/DavidGoodwin/nmap/workflows/PHP%20Build/badge.svg)
 
-Usage
+Starting a scan
 -----
 
 ```php
@@ -75,25 +77,58 @@ $nmap
     ->scan([ 'example.com' ]);
 ```
 
+You can run specific scripts with `setScripts()` and get the result with `getScripts()`:
+
+``` php
+$hosts = $nmap
+    ->setTimeout(120)
+    ->scan([ 'example.com' ], [ 443 ]);
+    
+$hosts[0]->setScripts(['ssl-heartbleed']);
+$ports = $hosts[0]->getOpenPorts();
+
+$ports[0]->getScripts();
+```
+
+Nmap XML output
+-------------------------------
+
+Parse existing output:
+
+``` php
+Nmap::parseOutput($xmlFile);
+```
+
+or
+
+``` php
+$parser = new XmlOutputParser($xmlFile);
+$parser->parse();
+```
+
+Validation output file using the Nmap DTD. A custom DTD path can be passed to the validate function.
+
+```php
+$parser = new XmlOutputParser($xmlFile);
+$parser->validate();
+```
+
 Installation
 ------------
 
-The recommended way to install nmap is through
-[Composer](http://getcomposer.org/):
+The recommended way to install nmap is through [Composer](http://getcomposer.org/):
 
-For PHP 7.2 and above, use version 2.x
-
-For PHP 5.6 and above, use version 1.x
+For PHP 8.0 and above - 
 
 ``` json
 {
     "require": {
-        "palepurple/nmap": "^2.0"
+        "palepurple/nmap": "^3.0"
     }
 }
 ```
 
-
+For older versions of PHP, try ^2.0; see also https://github.com/DavidGoodwin/nmap/releases/tag/2.0.1
 
 License
 -------
