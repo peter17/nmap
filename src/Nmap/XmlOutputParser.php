@@ -48,7 +48,11 @@ class XmlOutputParser
     private function getDtdFiles(?string $dtdPath = ''): array
     {
         $dtds = [];
-        $dtdPath = empty($dtdPath) ? self::$defaultDtd : $dtdPath;
+
+        if (!is_string($dtdPath) || empty($dtdPath)) {
+            $dtdPath = self::$defaultDtd;
+        }
+
         if ($this->filesystem->exists($dtdPath)) {
             $dtds[] = $dtdPath;
         }
@@ -56,7 +60,12 @@ class XmlOutputParser
         // Download latest official Nmap DTD
         $dtdPath = '/tmp/nmap.dtd';
         if (!$this->filesystem->exists($dtdPath)) {
-            $this->filesystem->dumpFile($dtdPath, file_get_contents('https://svn.nmap.org/nmap/docs/nmap.dtd'));
+            $str = file_get_contents('https://svn.nmap.org/nmap/docs/nmap.dtd');
+
+            if (!is_string($str)) {
+                throw new \InvalidArgumentException("Could not download https://svn.nmap.org/nmap/docs/nmap.dtd?");
+            }
+            $this->filesystem->dumpFile($dtdPath, $str);
         }
         $dtds[] = $dtdPath;
 
@@ -72,7 +81,8 @@ class XmlOutputParser
     private function getXmlstarlet(): string
     {
         $xmlstarlet = (new ExecutableFinder)->find('xmlstarlet');
-        if (empty($xmlstarlet)) {
+
+        if (!is_string($xmlstarlet) || empty($xmlstarlet)) {
             throw new RuntimeException('xmlstarlet could not be found');
         }
         return $xmlstarlet;
@@ -88,7 +98,7 @@ class XmlOutputParser
      * @link http://xmlstar.sourceforge.net/doc/UG/ch04s04.html
      * @todo: optimize this to find DTD that is associated with nmap version.
      */
-    public function validate($dtdPath = null): bool|string
+    public function validate(?string $dtdPath = null): bool|string
     {
         $dtdFiles = $this->getDtdFiles($dtdPath);
         $len = count($dtdFiles);
@@ -127,7 +137,14 @@ class XmlOutputParser
      */
     public function attemptFixInvalidFile(): bool
     {
-        if (preg_match('%' . preg_quote(XmlOutputParser::$xmlCloseTag) . '\s+$%m', file_get_contents($this->xmlFile))) {
+        $str = file_get_contents($this->xmlFile);
+
+        if (!is_string($str)) {
+            throw new \InvalidArgumentException("Could not get contents of file: {$this->xmlFile}");
+        }
+        
+
+        if (preg_match('%' . preg_quote(XmlOutputParser::$xmlCloseTag) . '\s+$%m', $str)) {
             return false;
         }
 
@@ -248,13 +265,15 @@ class XmlOutputParser
     {
         $elems = [];
         foreach ($xmlElems as $xmlElem) {
-            if (empty($xmlElem->attributes())) {
+            $attrs = $xmlElem->attributes();
+
+            if ($attrs === null) {
+                continue;
+            }
+
+            if (empty($attrs)) {
                 $elems[] = (string)$xmlElem[0];
             } else {
-                $attrs = $xmlElem->attributes();
-                if (null === $attrs) {
-                    continue;
-                }
                 $key = $attrs->key ?? null;
                 if ($key === null) {
                     continue;
@@ -284,7 +303,7 @@ class XmlOutputParser
 
                 $elem = $xmlTable->elem ?? null;
 
-                if ($elem) {
+                if (!is_null($elem)) {
                     $elems[$key] = self::parseScriptElem($elem);
                 }
             }
@@ -292,7 +311,7 @@ class XmlOutputParser
         }
 
         $elem = $xmlScript->elem ?? null;
-        if ($elem) {
+        if (!is_null($elem)) {
             return self::parseScriptElem($elem);
         }
         throw new \InvalidArgumentException("XML must contain either a table for a single elem element");
@@ -307,7 +326,7 @@ class XmlOutputParser
         foreach ($xmlPorts as $xmlPort) {
             $name = $product = $version = null;
 
-            if ($xmlPort->service) {
+            if ($xmlPort->service !== null) {
                 $attrs = $xmlPort->service->attributes();
                 if (!is_null($attrs)) {
                     $name = (string)$attrs->name;

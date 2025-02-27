@@ -13,8 +13,14 @@ namespace Nmap;
 class Host
 {
 
+    /**
+     * @psalm-suppress MissingClassConstType
+     */
     const STATE_UP = 'up';
 
+    /**
+     * @psalm-suppress MissingClassConstType
+     */
     const STATE_DOWN = 'down';
 
     private array $addresses;
@@ -39,17 +45,17 @@ class Host
         $this->ports = $ports;
     }
 
-    public function setScripts(array $scripts)
+    public function setScripts(array $scripts): void
     {
         $this->scripts = $scripts;
     }
 
-    public function setOs(string $os)
+    public function setOs(string $os): void
     {
         $this->os = $os;
     }
 
-    public function setOsAccuracy(int $accuracy)
+    public function setOsAccuracy(int $accuracy): void
     {
         $this->os_accuracy = $accuracy;
     }
@@ -135,7 +141,7 @@ class Host
      */
     public function getOpenPorts(): array
     {
-        return array_filter($this->ports, function ($port) {
+        return array_filter($this->ports, function (Port $port): bool {
             return $port->isOpen();
         });
     }
@@ -145,6 +151,6 @@ class Host
      */
     public function getClosedPorts(): array
     {
-        return array_filter($this->ports, fn ($port) => $port->isClosed());
+        return array_filter($this->ports, fn(Port $port) => $port->isClosed());
     }
 }

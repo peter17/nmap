@@ -21,7 +21,7 @@ class ProcessExecutor
     public function execute(array $command, int $timeout = 60): int
     {
         $executable = (new ExecutableFinder())->find($command[0]);
-        if (empty($executable)) {
+        if (!is_string($executable) || empty($executable)) {
             throw new InvalidArgumentException(sprintf('Unable to find executable `%s`', $command[0]));
         }
         $command[0] = $executable;

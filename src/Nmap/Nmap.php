@@ -17,27 +17,27 @@ use RuntimeException;
 class Nmap
 {
 
-    private $executor;
+    private ProcessExecutor $executor;
 
     private string $outputFile;
 
-    private $enableOsDetection = false;
+    private bool $enableOsDetection = false;
 
-    private $enableServiceInfo = false;
+    private bool $enableServiceInfo = false;
 
-    private $enableVerbose = false;
+    private bool $enableVerbose = false;
 
-    private $disablePortScan = false;
+    private bool $disablePortScan = false;
 
-    private $disableReverseDNS = false;
+    private bool $disableReverseDNS = false;
 
-    private $treatHostsAsOnline = false;
+    private bool $treatHostsAsOnline = false;
 
-    private $executable;
+    private string $executable;
 
-    private $timeout = 60;
+    private int $timeout = 60;
 
-    private $extraOptions = [];
+    private array $extraOptions = [];
 
     public static function create(): self
     {
@@ -49,11 +49,15 @@ class Nmap
      */
     public function __construct(
         ?ProcessExecutor $executor = null,
-        ?string $outputFile = null,
-        string $executable = 'nmap'
+        ?string          $outputFile = null,
+        string           $executable = 'nmap'
     ) {
         $this->executor = $executor ?: new ProcessExecutor();
-        $this->outputFile = $outputFile ?: tempnam(sys_get_temp_dir(), 'nmap-scan-output.xml');
+        $tmp = $outputFile ?? tempnam(sys_get_temp_dir(), 'nmap-scan-output.xml');
+        if (!is_string($tmp)) {
+            throw new \InvalidArgumentException("No outputFile parameter given, or not able to create one with tempnam, fs problem?");
+        }
+        $this->outputFile = $tmp;
         $this->executable = $executable;
 
         // If executor returns anything else than 0 (success exit code),
@@ -91,7 +95,7 @@ class Nmap
         if (true === $this->disablePortScan) {
             $options[] = '-sn';
         } elseif (!empty($ports)) {
-            $options[] = '-p '.implode(',', $ports);
+            $options[] = '-p ' . implode(',', $ports);
         }
 
         if ($this->disableReverseDNS) {

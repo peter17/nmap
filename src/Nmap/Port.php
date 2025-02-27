@@ -12,9 +12,13 @@ namespace Nmap;
 
 class Port
 {
-
+    /**
+     * @psalm-suppress MissingClassConstType
+     */
     const STATE_OPEN = 'open';
-
+    /**
+     * @psalm-suppress MissingClassConstType
+     */
     const STATE_CLOSED = 'closed';
 
     private int $number;
@@ -35,7 +39,7 @@ class Port
         $this->service = $service;
     }
 
-    public function setScripts(array $scripts)
+    public function setScripts(array $scripts): void
     {
         $this->scripts = $scripts;
     }

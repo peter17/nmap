@@ -12,9 +12,13 @@ namespace Nmap;
 
 class Address
 {
-
+    /**
+     * @psalm-suppress MissingClassConstType
+     */
     const TYPE_IPV4 = 'ipv4';
-
+    /**
+     * @psalm-suppress MissingClassConstType
+     */
     const TYPE_MAC = 'mac';
 
     private string $address;
