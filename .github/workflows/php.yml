@@ -7,11 +7,11 @@ jobs:
    runs-on: ubuntu-22.04
    strategy:
       matrix:
-        php-versions: ['8.0', '8.1', '8.2', '8.3', '8.4']
+        php-versions: ['8.1', '8.2', '8.3', '8.4']
 
    steps:
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Setup PHP
       uses: shivammathur/setup-php@v2
@@ -20,10 +20,7 @@ jobs:
         tools: composer
 
     - name: Install xmlstarlet
-      run: sudo apt-get install -y xmlstarlet
-
-    - name: Install nmap
-      run: sudo apt-get install -y nmap
+      run: DEBIAN_FRONTEND=noninteractive sudo apt-get -q update && sudo apt-get -yq install -y xmlstarlet nmap --no-install-recommends
 
     - name: Validate composer.json and composer.lock
       run: composer validate
@@ -38,7 +35,7 @@ jobs:
       run: composer lint
 
     - name: Run psalm
-      run: ./vendor/bin/psalm.phar --php-version=${{ matrix.php-versions }} --output-format=github
+      run: composer psalm-github
 
     - name: Run phpunit
       run: composer phpunit
