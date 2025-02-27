@@ -48,8 +48,8 @@ class Nmap
      * @throws \InvalidArgumentException
      */
     public function __construct(
-        ProcessExecutor $executor = null,
-        string $outputFile = null,
+        ?ProcessExecutor $executor = null,
+        ?string $outputFile = null,
         string $executable = 'nmap'
     ) {
         $this->executor = $executor ?: new ProcessExecutor();
